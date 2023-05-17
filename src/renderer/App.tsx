@@ -1,19 +1,16 @@
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import './styles/app.scss';
-
-function Placeholder() {
-  return (
-    <div className="w-full h-full min-h-screen inline-flex flex-col items-center justify-center bg-gray-100">
-      <h3 className="text-sm font-semibold text-gray-900">Welcome!</h3>
-    </div>
-  );
-}
+import Home from './pages/Home';
+import Playground from './pages/Playground';
+import Settings from './pages/Settings';
 
 export default function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Placeholder />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/playground" element={<Playground />} />
+        <Route path="/settings" element={<Settings />} />
       </Routes>
     </Router>
   );
