@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import AppLayout from 'renderer/layouts/AppLayout';
 
-export default function Home() {
+export default function Settings() {
   const [settingsState, setSettingsState] = useState({
     openaiKey: (window.electron.store.get('settings') || {}).openaiKey || '',
   });

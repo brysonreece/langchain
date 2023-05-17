@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import AppLayout from 'renderer/layouts/AppLayout';
 
-export default function Home() {
+export default function Playground() {
   const [settingsState] = useState(window.electron.store.get('settings') || {});
 
   return (
