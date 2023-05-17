@@ -19,6 +19,10 @@ checkNodeEnv('production');
 deleteSourceMaps();
 
 const configuration: webpack.Configuration = {
+  experiments: {
+    asyncWebAssembly: true,
+  },
+
   devtool: 'source-map',
 
   mode: 'production',

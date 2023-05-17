@@ -39,6 +39,10 @@ if (
 }
 
 const configuration: webpack.Configuration = {
+  experiments: {
+    asyncWebAssembly: true,
+  },
+
   devtool: 'inline-source-map',
 
   mode: 'development',
