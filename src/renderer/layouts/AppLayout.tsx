@@ -20,8 +20,8 @@ export default function AppLayout({
   title?: string;
 }) {
   return (
-    <div className="py-10">
-      <div className="flex items-center justify-around mb-10">
+    <div className="h-full min-h-screen flex flex-col space-y-10 py-10">
+      <div className="flex items-center justify-around">
         {navigation.map((item, idx) => (
           <Link
             // eslint-disable-next-line react/no-array-index-key
@@ -44,8 +44,8 @@ export default function AppLayout({
         </header>
       )}
 
-      <main className="my-10">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">{children}</div>
+      <main className="flex-grow h-0 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        {children}
       </main>
     </div>
   );
