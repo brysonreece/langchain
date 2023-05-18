@@ -3,7 +3,7 @@ import React, { Fragment } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, Transition } from '@headlessui/react';
 import { EllipsisHorizontalIcon } from '@heroicons/react/24/solid';
-import Agent from 'renderer/models/Agent';
+import { Agent } from 'renderer/interfaces';
 
 export default function AgentsList({ agents }: { agents: Agent[] }) {
   return (
