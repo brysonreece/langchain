@@ -2,7 +2,7 @@ import { TrashIcon } from '@heroicons/react/24/solid';
 import clsx from 'clsx';
 import { OpenAI } from 'langchain/llms/openai';
 import { nextTick } from 'process';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import AppLayout from 'renderer/layouts/AppLayout';
 import { ChatMessage, PlaygroundState, SettingsState } from 'renderer/interfaces';
@@ -10,45 +10,61 @@ import { ChatMessage, PlaygroundState, SettingsState } from 'renderer/interfaces
 
 export default function Playground() {
   const historyEl = useRef<HTMLDivElement>(null);
-  const [model, setModel] = useState<OpenAI | null>(null);
-  const [usingDefaultState] = useState<boolean>(! window.electron.store.has('playground'));
-  const [settingsState] = useState<SettingsState>(window.electron.store.get('settings') || { openaiKey: "" });
-  const [state, setState] = useState<PlaygroundState>(
-    usingDefaultState ? {
-      history: [],
-      loading: false,
-      prompt: "",
-      temperature: 0.5,
-    } : window.electron.store.get('playground')
-  );
 
-  if (! usingDefaultState) {
-    window.electron.store.set('playground', state);
-  }
+  const [state, setState] = useState<PlaygroundState>({
+    loading: false,
+    prompt: '',
+    history: [],
+    temperature: 0.5,
+  });
 
-  if (!! settingsState.openaiKey && ! model) {
-    initModel(state.temperature);
-  }
+  const [settingsState, setSettingsState] = useState<SettingsState>({
+    openaiKey: '',
+  });
 
-  function initModel(temperature: number): OpenAI {
-    let model = new OpenAI({ openAIApiKey: settingsState.openaiKey, temperature: temperature });
-
-    setModel(model);
-
-    return model;
-  }
-
-  function submit(): void {
-    if (! model) {
-      return;
+  useEffect(() => {
+    async function loadSettings() {
+      setSettingsState(await window.services.settings.all());
     }
 
+    loadSettings();
+
+    return function cleanup() {
+      Object.keys(settingsState).forEach((key) => {
+        window.services.settings.set(
+          key,
+          settingsState[key as keyof SettingsState]
+        );
+      });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    async function loadState() {
+      setState({
+        ...state,
+        history: await window.services.language.getHistory(),
+        temperature: await window.services.language.getTemperature(),
+      });
+    }
+
+    loadState();
+
+    return function cleanup() {
+      window.services.language.setHistory(state.history);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function submit() {
+    const history = await window.services.language.getHistory();
+
     setState((prev: PlaygroundState) => {
-      let history = (prev!.history as Array<ChatMessage>);
       history.push({ actor: 'user', msg: prev.prompt });
 
-      if (history.length > 100) {
-        history.slice(history.length - 101, 99);
+      if (state.history.length > 100) {
+        state.history.slice(history.length - 101, 99);
       }
 
       return {
@@ -67,20 +83,15 @@ export default function Playground() {
         behavior: 'smooth',
       });
 
-      const res = await model.call(state.prompt);
+      await window.electron.llm.prompt(state.prompt);
+
+      const newHistory = await window.electron.llm.history();
 
       setState((prev: PlaygroundState) => {
-        let history = (prev.history as Array<ChatMessage>);
-        history.push({ actor: 'system', msg: res });
-
-        if (history.length > 100) {
-          history.slice(history.length - 101, 99);
-        }
-
         return {
           ...prev,
           loading: false,
-          history: history,
+          history: newHistory,
         } as PlaygroundState;
       });
 
